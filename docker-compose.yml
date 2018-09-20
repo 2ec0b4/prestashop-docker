@@ -1,0 +1,50 @@
+version: '2'
+
+volumes:
+    db-data:
+    vendor:
+    var:
+
+services:
+    mysql:
+        image: mysql:5
+        ports:
+            - "32771:3306"
+        volumes:
+            - db-data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: prestashop
+        restart: always
+    apache:
+        build: .
+        links:
+            - mysql
+        depends_on:
+            - mysql
+        environment:
+            PS_INSTALL_AUTO: 1
+            DB_PASSWD: password
+            DB_NAME: prestashop
+            DB_SERVER: mysql
+            DB_PREFIX: ps_
+            PS_DOMAIN: localhost:8888
+            PS_FOLDER_INSTALL: install
+            PS_FOLDER_ADMIN: ps-administration
+            PS_LANGUAGE: fr
+            PS_COUNTRY: FR
+            ADMIN_MAIL: demo@prestashop.com
+            ADMIN_PASSWD: prestashop_demo
+        ports:
+            - "8888:80"
+        volumes:
+            - ./:/var/www/html/:delegated
+            - vendor:/var/www/html/vendor
+            - var:/var/www/html/var
+        restart: always
+    mailhog:
+        image: mailhog/mailhog
+        restart: always
+        ports:
+        - 1025:1025
+        - 8025:8025
